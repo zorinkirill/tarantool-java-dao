@@ -1,0 +1,4 @@
+rootProject.name = 'tarantool-java-dao'
+
+include 'tarantool-dao-api',
+        'tarantool-dao-gen'

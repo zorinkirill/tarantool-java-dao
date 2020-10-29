@@ -1,0 +1,41 @@
+plugins {
+    id 'maven-publish'
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    test {
+        useJUnitPlatform()
+    }
+    configurations {
+        all {
+            exclude group: 'junit', module: 'junit'
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+    }
+
+    ext {
+        assertJVersion = '3.6.1'
+        junitPlatformVersion = '1.6.2'
+        junitJupiterVersion = '5.6.2'
+        jsr305Version = '3.0.2'
+    }
+
+    dependencies {
+        testImplementation "org.assertj:assertj-core:${assertJVersion}"
+        testImplementation "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+    }
+}
+
+wrapper {
+    gradleVersion = '6.5.1'
+}
