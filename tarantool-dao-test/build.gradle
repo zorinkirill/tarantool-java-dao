@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    implementation project(':tarantool-dao-api')
+    annotationProcessor project(':tarantool-dao-gen')
+
+    implementation "com.google.code.findbugs:jsr305:${jsr305Version}"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    implementation "org.tarantool:connector:${tarantoolConnectorVersion}"
+}
+
+compileJava {
+    options.compilerArgs << '-parameters'
+}

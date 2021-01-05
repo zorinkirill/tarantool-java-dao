@@ -8,6 +8,21 @@ java {
     withSourcesJar()
 }
 
+dependencies {
+    api project(':tarantool-dao-api')
+
+    implementation "com.google.code.findbugs:jsr305:${jsr305Version}"
+    compileOnly "com.google.auto.service:auto-service:${googleAutoServiceVersion}"
+    annotationProcessor "com.google.auto.service:auto-service:${googleAutoServiceVersion}"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    implementation "com.squareup:javapoet:${javapoetVersion}"
+
+    implementation "org.tarantool:connector:${tarantoolConnectorVersion}"
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
