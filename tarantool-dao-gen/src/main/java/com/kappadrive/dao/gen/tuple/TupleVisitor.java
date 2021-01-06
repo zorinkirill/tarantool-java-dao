@@ -40,14 +40,6 @@ public final class TupleVisitor {
     }
 
     @Nonnull
-    static CodeBlock createOptionalReturn(@Nonnull final String value, @Nonnull final Class<?> type, @Nonnull final String suffix, @Nonnull final Object... args) {
-        return CodeBlock.builder()
-                .add("return $T.ofNullable($L).map($T.class::cast)", Optional.class, value, type)
-                .add(suffix, args)
-                .build();
-    }
-
-    @Nonnull
     static CodeBlock createSetter(@Nonnull final FieldData fieldData, @Nonnull final Class<?> type, @Nonnull final String mapper, @Nonnull final Object... args) {
         return CodeBlock.builder()
                 .add("$L.$L($T.ofNullable($L.get($L)).map($T.class::cast)", ENTITY, fieldData.getSetter(), Optional.class, TUPLE, fieldData.getOrder(), type)

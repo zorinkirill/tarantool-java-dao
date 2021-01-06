@@ -25,18 +25,6 @@ abstract class NumberVisitor implements TupleTypeVisitor {
 
     @Nonnull
     @Override
-    public CodeBlock createTupleReturn(@Nonnull TypeMirror typeMirror, @Nonnull String value) {
-        return CodeBlock.of("return (($T) $L)." + numberMethod + "()", Number.class, value);
-    }
-
-    @Nonnull
-    @Override
-    public CodeBlock createTupleOptionalReturn(@Nonnull TypeMirror typeMirror, @Nonnull String value) {
-        return TupleVisitor.createOptionalReturn(value, Number.class, ".map($T::" + numberMethod + ")", Number.class);
-    }
-
-    @Nonnull
-    @Override
     public CodeBlock createEntitySetter(@Nonnull FieldData fieldData) {
         return createSetter(fieldData, Number.class, ".map($T::" + numberMethod + ")", Number.class);
     }

@@ -17,18 +17,6 @@ public class StringVisitor implements TupleTypeVisitor {
 
     @Nonnull
     @Override
-    public CodeBlock createTupleReturn(@Nonnull TypeMirror typeMirror, @Nonnull String value) {
-        return CodeBlock.of("return ($T) $L", String.class, value);
-    }
-
-    @Nonnull
-    @Override
-    public CodeBlock createTupleOptionalReturn(@Nonnull TypeMirror typeMirror, @Nonnull String value) {
-        return TupleVisitor.createOptionalReturn(value, String.class, "");
-    }
-
-    @Nonnull
-    @Override
     public CodeBlock createEntitySetter(@Nonnull FieldData fieldData) {
         return createSetter(fieldData, String.class, "");
     }
