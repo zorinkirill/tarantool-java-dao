@@ -7,7 +7,7 @@ import com.kappadrive.dao.gen.DaoMethodData;
 import com.kappadrive.dao.gen.EntityData;
 import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.GenerateDaoProcessor;
-import com.kappadrive.dao.gen.tuple.TupleVisitor;
+import com.kappadrive.dao.gen.tuple.TupleUtil;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.JavaFile;
@@ -229,7 +229,7 @@ public final class GenerateUtil {
     ) {
         String getters = entityData.fieldsSortedByOrder()
                 .filter(fieldsFilter)
-                .map(f -> TupleVisitor.visit(f.getType(), this, t -> t.createEntityGetter(f, ENTITY)))
+                .map(f -> TupleUtil.findWriter(f.getType(), this).createEntityGetter(f, ENTITY))
                 .collect(Collectors.joining(", "));
         return MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
@@ -253,7 +253,7 @@ public final class GenerateUtil {
                 .returns(TypeName.get(entityData.getType()))
                 .addStatement("final var $L = new $T()", ENTITY, entityData.getType());
         entityData.fieldsSortedByOrder()
-                .forEach(f -> builder.addStatement(TupleVisitor.visit(f.getType(), this, t -> t.createEntitySetter(f))));
+                .forEach(f -> builder.addStatement(TupleUtil.findWriter(f.getType(), this).createEntitySetter(f)));
         return builder
                 .addStatement("return $L", ENTITY)
                 .build();

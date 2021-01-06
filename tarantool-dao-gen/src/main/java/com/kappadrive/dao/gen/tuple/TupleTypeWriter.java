@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-import static com.kappadrive.dao.gen.tuple.TupleVisitor.createSetter;
+import static com.kappadrive.dao.gen.tuple.TupleUtil.createSetter;
 
-public interface TupleTypeVisitor {
+public interface TupleTypeWriter {
 
     boolean supportType(@Nonnull final TypeMirror typeMirror, @Nonnull final GenerateUtil generateUtil);
 

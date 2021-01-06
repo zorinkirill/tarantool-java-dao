@@ -9,9 +9,9 @@ import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
-import static com.kappadrive.dao.gen.tuple.TupleVisitor.createSetter;
+import static com.kappadrive.dao.gen.tuple.TupleUtil.createSetter;
 
-class EnumVisitor implements TupleTypeVisitor {
+class EnumWriter implements TupleTypeWriter {
     @Override
     public boolean supportType(@Nonnull TypeMirror typeMirror, @Nonnull GenerateUtil generateUtil) {
         return generateUtil.isEnum(typeMirror);
@@ -20,7 +20,7 @@ class EnumVisitor implements TupleTypeVisitor {
     @Nonnull
     @Override
     public String createEntityGetter(@Nonnull FieldData fieldData, @Nonnull String entity) {
-        String getter = TupleTypeVisitor.super.createEntityGetter(fieldData, entity);
+        String getter = TupleTypeWriter.super.createEntityGetter(fieldData, entity);
         return getter + " == null ? null : " + getter + ".name()";
     }
 
@@ -33,7 +33,7 @@ class EnumVisitor implements TupleTypeVisitor {
     @Nonnull
     @Override
     public String createParameterGetter(@Nonnull VariableElement parameter) {
-        String value = TupleTypeVisitor.super.createParameterGetter(parameter);
+        String value = TupleTypeWriter.super.createParameterGetter(parameter);
         return value + " == null ? null : " + value + ".name()";
     }
 }

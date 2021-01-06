@@ -7,7 +7,7 @@ import com.kappadrive.dao.api.Replace;
 import com.kappadrive.dao.api.Select;
 import com.kappadrive.dao.api.Update;
 import com.kappadrive.dao.api.Upsert;
-import com.kappadrive.dao.gen.tuple.TupleVisitor;
+import com.kappadrive.dao.gen.tuple.TupleUtil;
 import com.kappadrive.dao.gen.util.AnnotationUtil;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
@@ -277,7 +277,7 @@ public enum DaoMethodType {
     ) {
         return parameters.stream()
                 .sorted(Comparator.comparingInt(p -> getParamField(method, p, daoImplData).getOrder()))
-                .map(p -> TupleVisitor.visit(p.asType(), generateUtil, t -> t.createParameterGetter(p)))
+                .map(p -> TupleUtil.findWriter(p.asType(), generateUtil).createParameterGetter(p))
                 .collect(joining(", "));
     }
 
@@ -307,7 +307,7 @@ public enum DaoMethodType {
         operationParams.forEach(p -> {
             FieldData field = getParamField(method, p, daoImplData);
             builder.add(", $T.asList($S, $L, $L)", Arrays.class, lookupOperator(p), field.getOrder(),
-                    TupleVisitor.visit(p.asType(), generateUtil, t -> t.createParameterGetter(p)));
+                    TupleUtil.findWriter(p.asType(), generateUtil).createParameterGetter(p));
         });
     }
 

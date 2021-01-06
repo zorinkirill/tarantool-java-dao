@@ -1,12 +1,12 @@
 package com.kappadrive.dao.gen.tuple;
 
 import com.kappadrive.dao.gen.FieldData;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.ByteVisitor;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.DoubleVisitor;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.FloatVisitor;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.IntVisitor;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.LongVisitor;
-import com.kappadrive.dao.gen.tuple.NumberVisitor.ShortVisitor;
+import com.kappadrive.dao.gen.tuple.NumberWriter.ByteWriter;
+import com.kappadrive.dao.gen.tuple.NumberWriter.DoubleWriter;
+import com.kappadrive.dao.gen.tuple.NumberWriter.FloatWriter;
+import com.kappadrive.dao.gen.tuple.NumberWriter.IntWriter;
+import com.kappadrive.dao.gen.tuple.NumberWriter.LongWriter;
+import com.kappadrive.dao.gen.tuple.NumberWriter.ShortVisitor;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.TypeName;
@@ -17,32 +17,32 @@ import javax.lang.model.type.TypeMirror;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
 import static com.kappadrive.dao.gen.util.GenerateUtil.ENTITY;
 import static com.kappadrive.dao.gen.util.GenerateUtil.TUPLE;
 
-public final class TupleVisitor {
+public final class TupleUtil {
 
-    private TupleVisitor() {
+    private TupleUtil() {
     }
 
-    private static final List<TupleTypeVisitor> visitors = Arrays.asList(
-            new LongVisitor(), new IntVisitor(), new ShortVisitor(), new ByteVisitor(), new DoubleVisitor(), new FloatVisitor(),
-            new BooleanVisitor(), new StringVisitor(), new EnumVisitor(), new ListVisitor()
+    private static final List<TupleTypeWriter> visitors = Arrays.asList(
+            new LongWriter(), new IntWriter(), new ShortVisitor(), new ByteWriter(), new DoubleWriter(), new FloatWriter(),
+            new BooleanWriter(), new StringWriter(), new EnumWriter(), new ListWriter()
     );
 
-    public static <R> R visit(@Nonnull final TypeMirror type, @Nonnull final GenerateUtil generateUtil, @Nonnull final Function<? super TupleTypeVisitor, ? extends R> creator) {
-        for (TupleTypeVisitor tupleType : visitors) {
+    @Nonnull
+    public static TupleTypeWriter findWriter(@Nonnull final TypeMirror type, @Nonnull final GenerateUtil generateUtil) {
+        for (TupleTypeWriter tupleType : visitors) {
             if (tupleType.supportType(type, generateUtil)) {
-                return creator.apply(tupleType);
+                return tupleType;
             }
         }
         throw new IllegalArgumentException(String.format("Unsupported tuple return type: %s", type));
     }
 
     public static boolean isSupported(@NonNull final TypeMirror type, @Nonnull final GenerateUtil generateUtil) {
-        for (TupleTypeVisitor tupleType : visitors) {
+        for (TupleTypeWriter tupleType : visitors) {
             if (tupleType.supportType(type, generateUtil)) {
                 return true;
             }

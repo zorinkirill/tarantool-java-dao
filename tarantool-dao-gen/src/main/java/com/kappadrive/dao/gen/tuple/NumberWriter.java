@@ -10,10 +10,10 @@ import javax.annotation.Nonnull;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-import static com.kappadrive.dao.gen.tuple.TupleVisitor.createSetter;
+import static com.kappadrive.dao.gen.tuple.TupleUtil.createSetter;
 
 @RequiredArgsConstructor
-abstract class NumberVisitor implements TupleTypeVisitor {
+abstract class NumberWriter implements TupleTypeWriter {
 
     private final Class<?> objectClass;
     private final TypeKind primitiveKind;
@@ -30,38 +30,38 @@ abstract class NumberVisitor implements TupleTypeVisitor {
         return createSetter(fieldData, TypeName.get(Number.class), ".map($T::" + numberMethod + ")", Number.class);
     }
 
-    static class LongVisitor extends NumberVisitor {
-        public LongVisitor() {
+    static class LongWriter extends NumberWriter {
+        public LongWriter() {
             super(Long.class, TypeKind.LONG, "longValue");
         }
     }
 
-    static class IntVisitor extends NumberVisitor {
-        public IntVisitor() {
+    static class IntWriter extends NumberWriter {
+        public IntWriter() {
             super(Integer.class, TypeKind.INT, "intValue");
         }
     }
 
-    static class ShortVisitor extends NumberVisitor {
+    static class ShortVisitor extends NumberWriter {
         public ShortVisitor() {
             super(Short.class, TypeKind.SHORT, "shortValue");
         }
     }
 
-    static class ByteVisitor extends NumberVisitor {
-        public ByteVisitor() {
+    static class ByteWriter extends NumberWriter {
+        public ByteWriter() {
             super(Byte.class, TypeKind.BYTE, "byteValue");
         }
     }
 
-    static class DoubleVisitor extends NumberVisitor {
-        public DoubleVisitor() {
+    static class DoubleWriter extends NumberWriter {
+        public DoubleWriter() {
             super(Double.class, TypeKind.DOUBLE, "doubleValue");
         }
     }
 
-    static class FloatVisitor extends NumberVisitor {
-        public FloatVisitor() {
+    static class FloatWriter extends NumberWriter {
+        public FloatWriter() {
             super(Float.class, TypeKind.FLOAT, "floatValue");
         }
     }

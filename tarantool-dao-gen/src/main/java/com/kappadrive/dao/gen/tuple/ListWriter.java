@@ -7,9 +7,9 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
-import static com.kappadrive.dao.gen.tuple.TupleVisitor.isSupported;
+import static com.kappadrive.dao.gen.tuple.TupleUtil.isSupported;
 
-class ListVisitor implements TupleTypeVisitor {
+class ListWriter implements TupleTypeWriter {
 
     @Override
     public boolean supportType(@Nonnull TypeMirror typeMirror, @Nonnull GenerateUtil generateUtil) {
