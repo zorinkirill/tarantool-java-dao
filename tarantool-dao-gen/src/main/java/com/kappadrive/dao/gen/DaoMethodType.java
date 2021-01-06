@@ -158,7 +158,7 @@ public enum DaoMethodType {
                 throw new IllegalStateException("Update method should have at least 1 key parameter: " + method.getMethod());
             }
             operation.add("$L.syncOps().update($L, $T.asList(", CLIENT, SPACE, Arrays.class)
-                    .add(DaoMethodType.getArgsAsString(method, keyFields, daoImplData, generateUtil))
+                    .add(getArgsAsString(method, keyFields, daoImplData, generateUtil))
                     .add(")");
             addOperations(method, daoImplData, operation, generateUtil);
             builder.addStatement(operation.add(")").build());
@@ -298,13 +298,17 @@ public enum DaoMethodType {
             @Nonnull final CodeBlock.Builder builder,
             @Nonnull final GenerateUtil generateUtil
     ) {
-        method.getMethod().getParameters().stream()
+        var operationParams = method.getMethod().getParameters().stream()
                 .filter(isAnnotatedWith(OPERATIONS))
-                .forEach(p -> {
-                    FieldData field = getParamField(method, p, daoImplData);
-                    builder.add(", $T.asList($S, $L, $L)", Arrays.class, lookupOperator(p), field.getOrder(),
-                            TupleVisitor.visit(p.asType(), generateUtil, t -> t.createParameterGetter(p)));
-                });
+                .collect(Collectors.toList());
+        if (operationParams.isEmpty()) {
+            throw new IllegalStateException("Update/Upsert method should have at least 1 Operation parameter: " + method.getMethod());
+        }
+        operationParams.forEach(p -> {
+            FieldData field = getParamField(method, p, daoImplData);
+            builder.add(", $T.asList($S, $L, $L)", Arrays.class, lookupOperator(p), field.getOrder(),
+                    TupleVisitor.visit(p.asType(), generateUtil, t -> t.createParameterGetter(p)));
+        });
     }
 
     private final List<String> prefixes;
