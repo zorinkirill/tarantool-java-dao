@@ -7,11 +7,9 @@ import com.kappadrive.dao.gen.DaoMethodData;
 import com.kappadrive.dao.gen.EntityData;
 import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.GenerateDaoProcessor;
-import com.kappadrive.dao.gen.TupleImplData;
-import com.kappadrive.dao.gen.tuple.TupleVisitor;
+import com.kappadrive.dao.gen.tuple.TupleUtil;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -20,7 +18,6 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.processing.Generated;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -42,7 +39,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
@@ -185,29 +181,6 @@ public final class GenerateUtil {
     }
 
     @Nonnull
-    public List<MethodSpec> createOrderedMethods(@Nonnull final TupleImplData tupleImplData) {
-        return tupleImplData.getMethods().stream().map(fieldData -> {
-            DeclaredType interfaceType = tupleImplData.getInterfaceType();
-            return createTupleMethod(fieldData, interfaceType);
-        }).collect(Collectors.toList());
-    }
-
-    @Nonnull
-    private MethodSpec createTupleMethod(@Nonnull final TupleImplData.FieldData fieldData, @Nonnull final DeclaredType interfaceType) {
-        return methodBuilder(fieldData.getMethod(), interfaceType)
-                .addStatement("$T value = this.$L.get($L)", Object.class, TUPLE, fieldData.getOrder())
-                .addStatement(createTupleReturn(fieldData, "value"))
-                .build();
-    }
-
-    @Nonnull
-    private CodeBlock createTupleReturn(@Nonnull final TupleImplData.FieldData fieldData, @Nonnull final String value) {
-        return TupleVisitor.visit(fieldData.getType(), this, fieldData.isOptional()
-                ? t -> t.createTupleOptionalReturn(fieldData.getType(), value)
-                : t -> t.createTupleReturn(fieldData.getType(), value));
-    }
-
-    @Nonnull
     public TypeMirror getFinalType(@Nonnull final TypeMirror typeMirror) {
         if (isAssignableGeneric(typeMirror, Optional.class)) {
             return getGenericType(typeMirror, 0);
@@ -249,53 +222,6 @@ public final class GenerateUtil {
     }
 
     @Nonnull
-    public List<MethodSpec> createBuilderInterfaceMethods(@Nonnull final TupleImplData tupleImplData) {
-        return tupleImplData.getMethods().stream()
-                .map(method -> createBuilderInterfaceMethod(method, tupleImplData))
-                .collect(Collectors.toList());
-    }
-
-    @Nonnull
-    public MethodSpec createBuilderInterfaceMethod(@Nonnull final TupleImplData.FieldData fieldData, @Nonnull final TupleImplData tupleImplData) {
-        return MethodSpec.methodBuilder(fieldData.getName())
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addAnnotation(Nonnull.class)
-                .returns(ClassName.get(tupleImplData.getPackageName(), tupleImplData.getBuilderInterfaceName()))
-                .addParameter(createBuilderParameter(fieldData))
-                .build();
-    }
-
-    @Nonnull
-    public List<MethodSpec> createBuilderImplMethods(@Nonnull final TupleImplData tupleImplData) {
-        return tupleImplData.getMethods().stream()
-                .map(method -> createBuilderImplMethod(method, tupleImplData))
-                .collect(Collectors.toList());
-    }
-
-    @Nonnull
-    public MethodSpec createBuilderImplMethod(@Nonnull final TupleImplData.FieldData fieldData, @Nonnull final TupleImplData tupleImplData) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder(fieldData.getName())
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Nonnull.class)
-                .addAnnotation(Override.class)
-                .returns(ClassName.get(tupleImplData.getPackageName(), tupleImplData.getBuilderInterfaceName()))
-                .addParameter(createBuilderParameter(fieldData));
-        if (!fieldData.isOptional()) {
-            builder.addStatement("$T.requireNonNull($L, $S)", Objects.class, fieldData.getName(), fieldData.getName());
-        }
-        return builder.addStatement(TupleVisitor.visit(fieldData.getType(), this, t -> t.createTupleSetter(fieldData)))
-                .addStatement("return this")
-                .build();
-    }
-
-    @Nonnull
-    private ParameterSpec createBuilderParameter(@Nonnull final TupleImplData.FieldData fieldData) {
-        return ParameterSpec.builder(TypeName.get(fieldData.getType()), fieldData.getName())
-                .addAnnotation(fieldData.isOptional() ? Nullable.class : Nonnull.class)
-                .build();
-    }
-
-    @Nonnull
     public MethodSpec createDaoToTupleMethod(
             @Nonnull final String name,
             @Nonnull final EntityData entityData,
@@ -303,7 +229,7 @@ public final class GenerateUtil {
     ) {
         String getters = entityData.fieldsSortedByOrder()
                 .filter(fieldsFilter)
-                .map(f -> TupleVisitor.visit(f.getType(), this, t -> t.createEntityGetter(f, ENTITY)))
+                .map(f -> TupleUtil.findWriter(f.getType(), this).createEntityGetter(f, ENTITY))
                 .collect(Collectors.joining(", "));
         return MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
@@ -327,7 +253,7 @@ public final class GenerateUtil {
                 .returns(TypeName.get(entityData.getType()))
                 .addStatement("final var $L = new $T()", ENTITY, entityData.getType());
         entityData.fieldsSortedByOrder()
-                .forEach(f -> builder.addStatement(TupleVisitor.visit(f.getType(), this, t -> t.createEntitySetter(f))));
+                .forEach(f -> builder.addStatement(TupleUtil.findWriter(f.getType(), this).createEntitySetter(f)));
         return builder
                 .addStatement("return $L", ENTITY)
                 .build();
