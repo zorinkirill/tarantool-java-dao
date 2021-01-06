@@ -1,13 +1,15 @@
 package com.kappadrive.dao.test;
 
 import com.kappadrive.dao.api.Space;
-import com.kappadrive.dao.api.Tuple;
-import com.kappadrive.dao.api.Tuple.Key;
 import com.kappadrive.dao.api.Tuple.Ignore;
+import com.kappadrive.dao.api.Tuple.Key;
 import com.kappadrive.dao.api.Tuple.Order;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -30,4 +32,9 @@ public class TestEntity {
     private UserType previousType;
     @Ignore
     private String ignored;
+    @Order(6)
+    @NonNull
+    private List<Long> values = new ArrayList<>();
+    @Order(7)
+    private Boolean isActive;
 }

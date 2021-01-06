@@ -3,10 +3,13 @@ package com.kappadrive.dao.gen.tuple;
 import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+
+import static com.kappadrive.dao.gen.tuple.TupleVisitor.createSetter;
 
 public interface TupleTypeVisitor {
 
@@ -18,7 +21,9 @@ public interface TupleTypeVisitor {
     }
 
     @Nonnull
-    CodeBlock createEntitySetter(@Nonnull final FieldData fieldData);
+    default CodeBlock createEntitySetter(@Nonnull final FieldData fieldData) {
+        return createSetter(fieldData, TypeName.get(fieldData.getType()), "");
+    }
 
     @Nonnull
     default String createParameterGetter(@Nonnull final VariableElement parameter) {

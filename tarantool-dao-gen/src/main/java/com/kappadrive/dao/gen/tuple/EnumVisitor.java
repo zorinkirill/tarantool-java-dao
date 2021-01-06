@@ -3,6 +3,7 @@ package com.kappadrive.dao.gen.tuple;
 import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.element.VariableElement;
@@ -10,7 +11,7 @@ import javax.lang.model.type.TypeMirror;
 
 import static com.kappadrive.dao.gen.tuple.TupleVisitor.createSetter;
 
-public class EnumVisitor implements TupleTypeVisitor {
+class EnumVisitor implements TupleTypeVisitor {
     @Override
     public boolean supportType(@Nonnull TypeMirror typeMirror, @Nonnull GenerateUtil generateUtil) {
         return generateUtil.isEnum(typeMirror);
@@ -26,7 +27,7 @@ public class EnumVisitor implements TupleTypeVisitor {
     @Nonnull
     @Override
     public CodeBlock createEntitySetter(@Nonnull FieldData fieldData) {
-        return createSetter(fieldData, String.class, ".map($T::valueOf)", fieldData.getType());
+        return createSetter(fieldData, TypeName.get(String.class), ".map($T::valueOf)", fieldData.getType());
     }
 
     @Nonnull

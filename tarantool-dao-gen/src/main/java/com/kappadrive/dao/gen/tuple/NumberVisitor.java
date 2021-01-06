@@ -3,6 +3,7 @@ package com.kappadrive.dao.gen.tuple;
 import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.TypeName;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
@@ -26,7 +27,7 @@ abstract class NumberVisitor implements TupleTypeVisitor {
     @Nonnull
     @Override
     public CodeBlock createEntitySetter(@Nonnull FieldData fieldData) {
-        return createSetter(fieldData, Number.class, ".map($T::" + numberMethod + ")", Number.class);
+        return createSetter(fieldData, TypeName.get(Number.class), ".map($T::" + numberMethod + ")", Number.class);
     }
 
     static class LongVisitor extends NumberVisitor {
