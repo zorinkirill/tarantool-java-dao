@@ -14,6 +14,7 @@ import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,5 +126,16 @@ public final class AnnotationUtil {
                 return (TypeElement) ((DeclaredType) t).asElement();
             }
         };
+    }
+
+    public static boolean isAnnotatedWith(@Nonnull final Element element, @Nonnull final Class<? extends Annotation> annotation) {
+        return getAnnotationMirror(element, annotation).isPresent();
+    }
+
+    @Nonnull
+    @SafeVarargs
+    public static Predicate<Element> isAnnotatedWith(@Nonnull final Class<? extends Annotation>... annotations) {
+        return param -> Stream.of(annotations)
+                .anyMatch(a -> isAnnotatedWith(param, a));
     }
 }

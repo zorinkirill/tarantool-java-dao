@@ -38,5 +38,5 @@ public class TestEntity {
     @Order(7)
     private boolean active;
     @Order(8)
-    private char sex;
+    private Tax tax;
 }

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.tarantool.Iterator;
 
 import javax.annotation.Nonnull;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -28,8 +29,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.kappadrive.dao.gen.util.AnnotationUtil.isAnnotatedWith;
 import static com.kappadrive.dao.gen.util.GenerateUtil.CLIENT;
 import static com.kappadrive.dao.gen.util.GenerateUtil.LIST_LIST_OBJECT_TYPE;
 import static com.kappadrive.dao.gen.util.GenerateUtil.SPACE;
@@ -213,8 +214,8 @@ public enum DaoMethodType {
     ;
 
     @Nonnull
-    private static Predicate<VariableElement> hasEntityType(@Nonnull final DaoImplData daoImplData) {
-        return p -> p.asType().equals(daoImplData.getEntity().getType());
+    private static Predicate<Element> hasEntityType(@Nonnull final DaoImplData daoImplData) {
+        return e -> e.asType().equals(daoImplData.getEntity().getType());
     }
 
     @Nonnull
@@ -236,22 +237,11 @@ public enum DaoMethodType {
         }
     }
 
-    private static boolean isAnnotatedWith(@Nonnull final VariableElement param, @Nonnull final Class<? extends Annotation> annotation) {
-        return AnnotationUtil.getAnnotationMirror(param, annotation).isPresent();
-    }
-
     @Nonnull
     @SuppressWarnings("unchecked")
     private static final Class<? extends Annotation>[] OPERATIONS = ((Class<? extends Annotation>[]) new Class[]{
             Operation.Assign.class, Operation.Add.class, Operation.Sub.class,
             Operation.And.class, Operation.Or.class, Operation.Xor.class});
-
-    @Nonnull
-    @SafeVarargs
-    private static Predicate<VariableElement> isAnnotatedWith(@Nonnull final Class<? extends Annotation>... annotations) {
-        return param -> Stream.of(annotations)
-                .anyMatch(a -> isAnnotatedWith(param, a));
-    }
 
     private static boolean isVoid(@Nonnull final DaoMethodData method) {
         return method.getMethod().getReturnType().getKind() == TypeKind.VOID;
@@ -277,7 +267,8 @@ public enum DaoMethodType {
     ) {
         return parameters.stream()
                 .sorted(Comparator.comparingInt(p -> getParamField(method, p, daoImplData).getOrder()))
-                .map(p -> TupleUtil.findWriter(p.asType(), generateUtil).createParameterGetter(p))
+                .map(p -> TupleUtil.findWriter(p.asType(), generateUtil)
+                        .createGetter(p.asType(), p.getSimpleName().toString(), generateUtil))
                 .collect(joining(", "));
     }
 
@@ -307,7 +298,8 @@ public enum DaoMethodType {
         operationParams.forEach(p -> {
             FieldData field = getParamField(method, p, daoImplData);
             builder.add(", $T.asList($S, $L, $L)", Arrays.class, lookupOperator(p), field.getOrder(),
-                    TupleUtil.findWriter(p.asType(), generateUtil).createParameterGetter(p));
+                    TupleUtil.findWriter(p.asType(), generateUtil)
+                            .createGetter(p.asType(), p.getSimpleName().toString(), generateUtil));
         });
     }
 

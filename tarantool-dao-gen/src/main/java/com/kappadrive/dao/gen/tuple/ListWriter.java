@@ -1,16 +1,14 @@
 package com.kappadrive.dao.gen.tuple;
 
-import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.util.List;
 
-import static com.kappadrive.dao.gen.tuple.TupleUtil.createGenericSetter;
+import static com.kappadrive.dao.gen.tuple.TupleUtil.genericCast;
 import static com.kappadrive.dao.gen.tuple.TupleUtil.isSupported;
 
 class ListWriter implements TupleTypeWriter {
@@ -23,7 +21,7 @@ class ListWriter implements TupleTypeWriter {
 
     @Nonnull
     @Override
-    public CodeBlock createEntitySetter(@Nonnull FieldData fieldData) {
-        return createGenericSetter(fieldData, TypeName.get(fieldData.getType()), "");
+    public CodeBlock createOptionalSetter(@Nonnull TypeMirror type, @Nonnull GenerateUtil generateUtil) {
+        return genericCast(type);
     }
 }
