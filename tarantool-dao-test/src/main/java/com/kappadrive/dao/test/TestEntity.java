@@ -36,5 +36,7 @@ public class TestEntity {
     @NonNull
     private List<Long> values = new ArrayList<>();
     @Order(7)
-    private Boolean isActive;
+    private boolean active;
+    @Order(8)
+    private char sex;
 }

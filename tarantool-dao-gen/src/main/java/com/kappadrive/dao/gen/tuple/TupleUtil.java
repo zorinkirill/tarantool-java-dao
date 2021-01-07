@@ -28,7 +28,7 @@ public final class TupleUtil {
 
     private static final List<TupleTypeWriter> visitors = Arrays.asList(
             new LongWriter(), new IntWriter(), new ShortVisitor(), new ByteWriter(), new DoubleWriter(), new FloatWriter(),
-            new BooleanWriter(), new StringWriter(), new EnumWriter(), new ListWriter()
+            new BooleanWriter(), new CharWriter(), new StringWriter(), new EnumWriter(), new ListWriter()
     );
 
     @Nonnull
@@ -51,11 +51,37 @@ public final class TupleUtil {
     }
 
     @Nonnull
-    static CodeBlock createSetter(@Nonnull final FieldData fieldData, @Nonnull final TypeName type, @Nonnull final String mapper, @Nonnull final Object... args) {
+    static CodeBlock createSetter(
+            @Nonnull final FieldData fieldData,
+            @Nonnull final TypeName type,
+            @Nonnull final String mapper,
+            @Nonnull final Object... args
+    ) {
+        return createSetter(fieldData, type, mapper, args, "$T.class::cast");
+    }
+
+    @Nonnull
+    static CodeBlock createGenericSetter(
+            @Nonnull final FieldData fieldData,
+            @Nonnull final TypeName type,
+            @Nonnull final String mapper,
+            @Nonnull final Object... args
+    ) {
+        return createSetter(fieldData, type, mapper, args, "o -> ($T) o");
+    }
+
+    @Nonnull
+    private static CodeBlock createSetter(
+            @Nonnull final FieldData fieldData,
+            @Nonnull final TypeName type,
+            @Nonnull final String mapper,
+            @Nonnull final Object[] args,
+            @Nonnull final String caster
+    ) {
         return CodeBlock.builder()
-                .add("$L.$L($T.ofNullable($L.get($L)).map(o -> ($T) o)", ENTITY, fieldData.getSetter(), Optional.class, TUPLE, fieldData.getOrder(), type)
+                .add("$T.ofNullable($L.get($L)).map(" + caster + ")", Optional.class, TUPLE, fieldData.getOrder(), type)
                 .add(mapper, args)
-                .add(".orElse(null))")
+                .add(".ifPresent($L::$L)", ENTITY, fieldData.getSetter())
                 .build();
     }
 }

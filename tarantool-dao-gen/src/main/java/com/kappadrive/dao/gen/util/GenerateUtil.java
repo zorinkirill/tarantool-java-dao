@@ -29,6 +29,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -150,11 +151,12 @@ public final class GenerateUtil {
         if (orderValue.isPresent() && order.get() != 0) {
             throw new IllegalStateException("Either no fields or all not ignored fields should be marked with @" + Tuple.Order.class + " in: " + declaredType);
         }
+        TypeMirror type = field.asType();
         return FieldData.builder()
                 .field(field)
                 .name(name)
-                .type(field.asType())
-                .getter("get" + capitalize(field.getSimpleName().toString()))
+                .type(type)
+                .getter((type.getKind() == TypeKind.BOOLEAN ? "is" : "get") + capitalize(field.getSimpleName().toString()))
                 .setter("set" + capitalize(field.getSimpleName().toString()))
                 .key(AnnotationUtil.getAnnotationMirror(field, Tuple.Key.class).isPresent())
                 .order(orderValue.map(i -> i - 1).orElseGet(order::getAndIncrement))
