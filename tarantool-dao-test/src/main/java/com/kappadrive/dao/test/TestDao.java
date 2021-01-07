@@ -16,4 +16,8 @@ public interface TestDao extends BaseDao {
     @Index("other")
     @Select
     List<TestEntity> getByType(UserType type, @Limit int limit);
+
+    @Nonnull
+    @Index("by_tax_and_age")
+    List<TestEntity> findAllByTax(Tax tax, Integer age);
 }

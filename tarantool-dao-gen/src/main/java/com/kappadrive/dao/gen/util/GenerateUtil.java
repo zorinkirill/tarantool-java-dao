@@ -10,6 +10,7 @@ import com.kappadrive.dao.gen.GenerateDaoProcessor;
 import com.kappadrive.dao.gen.tuple.TupleUtil;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
@@ -151,16 +152,25 @@ public final class GenerateUtil {
         if (orderValue.isPresent() && order.get() != 0) {
             throw new IllegalStateException("Either no fields or all not ignored fields should be marked with @" + Tuple.Order.class + " in: " + declaredType);
         }
-        TypeMirror type = field.asType();
         return FieldData.builder()
                 .field(field)
                 .name(name)
-                .type(type)
-                .getter((type.getKind() == TypeKind.BOOLEAN ? "is" : "get") + capitalize(field.getSimpleName().toString()))
-                .setter("set" + capitalize(field.getSimpleName().toString()))
+                .type(field.asType())
+                .getter(createGetter(field))
+                .setter(createSetter(field))
                 .key(AnnotationUtil.getAnnotationMirror(field, Tuple.Key.class).isPresent())
                 .order(orderValue.map(i -> i - 1).orElseGet(order::getAndIncrement))
                 .build();
+    }
+
+    @Nonnull
+    public static String createSetter(@Nonnull final VariableElement field) {
+        return "set" + capitalize(field.getSimpleName().toString());
+    }
+
+    @Nonnull
+    public static String createGetter(@Nonnull final VariableElement field) {
+        return (field.asType().getKind() == TypeKind.BOOLEAN ? "is" : "get") + capitalize(field.getSimpleName().toString());
     }
 
     @Nonnull
@@ -231,8 +241,9 @@ public final class GenerateUtil {
     ) {
         String getters = entityData.fieldsSortedByOrder()
                 .filter(fieldsFilter)
-                .map(f -> TupleUtil.findWriter(f.getType(), this).createEntityGetter(f, ENTITY))
-                .collect(Collectors.joining(", "));
+                .map(f -> TupleUtil.findWriter(f.getType(), this)
+                        .createGetter(f.getType(), String.format("%s.%s()", ENTITY, f.getGetter()), this))
+                .collect(Collectors.joining(",\n", "\n", "\n"));
         return MethodSpec.methodBuilder(name)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .addAnnotation(Nonnull.class)
@@ -255,7 +266,13 @@ public final class GenerateUtil {
                 .returns(TypeName.get(entityData.getType()))
                 .addStatement("final var $L = new $T()", ENTITY, entityData.getType());
         entityData.fieldsSortedByOrder()
-                .forEach(f -> builder.addStatement(TupleUtil.findWriter(f.getType(), this).createEntitySetter(f)));
+                .forEach(f -> builder.addStatement(
+                        CodeBlock.builder()
+                                .add("$T.ofNullable($L.get($L))", Optional.class, TUPLE, f.getOrder())
+                                .add(TupleUtil.findWriter(f.getType(), this).createOptionalSetter(f.getType(), this))
+                                .add(".ifPresent($L::$L)", ENTITY, f.getSetter())
+                                .build()
+                ));
         return builder
                 .addStatement("return $L", ENTITY)
                 .build();

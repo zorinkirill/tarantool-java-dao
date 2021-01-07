@@ -1,6 +1,5 @@
 package com.kappadrive.dao.gen.tuple;
 
-import com.kappadrive.dao.gen.FieldData;
 import com.kappadrive.dao.gen.tuple.NumberWriter.ByteWriter;
 import com.kappadrive.dao.gen.tuple.NumberWriter.DoubleWriter;
 import com.kappadrive.dao.gen.tuple.NumberWriter.FloatWriter;
@@ -9,17 +8,12 @@ import com.kappadrive.dao.gen.tuple.NumberWriter.LongWriter;
 import com.kappadrive.dao.gen.tuple.NumberWriter.ShortVisitor;
 import com.kappadrive.dao.gen.util.GenerateUtil;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.TypeName;
 import lombok.NonNull;
 
 import javax.annotation.Nonnull;
 import javax.lang.model.type.TypeMirror;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-
-import static com.kappadrive.dao.gen.util.GenerateUtil.ENTITY;
-import static com.kappadrive.dao.gen.util.GenerateUtil.TUPLE;
 
 public final class TupleUtil {
 
@@ -51,37 +45,17 @@ public final class TupleUtil {
     }
 
     @Nonnull
-    static CodeBlock createSetter(
-            @Nonnull final FieldData fieldData,
-            @Nonnull final TypeName type,
-            @Nonnull final String mapper,
-            @Nonnull final Object... args
-    ) {
-        return createSetter(fieldData, type, mapper, args, "$T.class::cast");
+    static CodeBlock simpleCast(@Nonnull final TypeMirror type) {
+        return CodeBlock.of(".map($T.class::cast)", type);
     }
 
     @Nonnull
-    static CodeBlock createGenericSetter(
-            @Nonnull final FieldData fieldData,
-            @Nonnull final TypeName type,
-            @Nonnull final String mapper,
-            @Nonnull final Object... args
-    ) {
-        return createSetter(fieldData, type, mapper, args, "o -> ($T) o");
+    static CodeBlock simpleCast(@Nonnull final Class<?> type) {
+        return CodeBlock.of(".map($T.class::cast)", type);
     }
 
     @Nonnull
-    private static CodeBlock createSetter(
-            @Nonnull final FieldData fieldData,
-            @Nonnull final TypeName type,
-            @Nonnull final String mapper,
-            @Nonnull final Object[] args,
-            @Nonnull final String caster
-    ) {
-        return CodeBlock.builder()
-                .add("$T.ofNullable($L.get($L)).map(" + caster + ")", Optional.class, TUPLE, fieldData.getOrder(), type)
-                .add(mapper, args)
-                .add(".ifPresent($L::$L)", ENTITY, fieldData.getSetter())
-                .build();
+    static CodeBlock genericCast(@Nonnull final TypeMirror type) {
+        return CodeBlock.of(".map(o -> ($T) o)", type);
     }
 }
