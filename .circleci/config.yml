@@ -18,6 +18,7 @@ jobs:
             - v1-dependencies-{{ checksum "build.gradle" }}
             - v1-dependencies-
 
+      - run: sudo chmod +x ./gradlew
       - run: ./gradlew dependencies
 
       - save_cache:
