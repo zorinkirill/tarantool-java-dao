@@ -11,19 +11,70 @@ jobs:
       TERM: dumb
 
     steps:
+      checkout:
+        post:
+          - |
+            if [[ -n "${CIRCLE_PR_NUMBER}" ]]
+            then
+                # Update PR refs for testing.
+                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
+                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
+
+                # Retrieve the refs
+                git fetch -u origin ${FETCH_REFS}
+
+                # Checkout PR merge ref.
+                git checkout -qf "pr/${CIRCLE_PR_NUMBER}/merge"
+
+                # Test for *some* merge conflicts.
+                git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
+            fi
+
+        - restore_cache:
+            keys:
+              - v1-dependencies-{{ checksum "build.gradle" }}
+              - v1-dependencies-
+
+        - run: sudo chmod +x ./gradlew
+        - run: ./gradlew dependencies
+
+        - save_cache:
+            paths:
+              - ~/.gradle
+            key: v1-dependencies-{{ checksum "build.gradle" }}
+
+        - run: ./gradlew clean check
+
+  publish:
+    docker:
+      - image: circleci/openjdk:11.0.1
+
+    working_directory: ~/repo
+
+    environment:
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
       - checkout
 
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
-            - v1-dependencies-
 
       - run: sudo chmod +x ./gradlew
-      - run: ./gradlew dependencies
+      - run: ./gradlew assemble publish -P version=$CIRCLE_TAG
 
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      - run: ./gradlew test
+workflows:
+  version: 2
+  build_and_publish_from_tag:
+    jobs:
+      - build
+      - publish:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
