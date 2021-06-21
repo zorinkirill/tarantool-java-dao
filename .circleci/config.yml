@@ -11,39 +11,39 @@ jobs:
       TERM: dumb
 
     steps:
-      checkout:
-        post:
-          - |
-            if [[ -n "${CIRCLE_PR_NUMBER}" ]]
-            then
-                # Update PR refs for testing.
-                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
-                FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
+      - checkout:
+          post:
+            - |
+              if [[ -n "${CIRCLE_PR_NUMBER}" ]]
+              then
+                  # Update PR refs for testing.
+                  FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
+                  FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
 
-                # Retrieve the refs
-                git fetch -u origin ${FETCH_REFS}
+                  # Retrieve the refs
+                  git fetch -u origin ${FETCH_REFS}
 
-                # Checkout PR merge ref.
-                git checkout -qf "pr/${CIRCLE_PR_NUMBER}/merge"
+                  # Checkout PR merge ref.
+                  git checkout -qf "pr/${CIRCLE_PR_NUMBER}/merge"
 
-                # Test for *some* merge conflicts.
-                git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
-            fi
+                  # Test for *some* merge conflicts.
+                  git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
+              fi
 
-        - restore_cache:
-            keys:
-              - v1-dependencies-{{ checksum "build.gradle" }}
-              - v1-dependencies-
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "build.gradle" }}
+            - v1-dependencies-
 
-        - run: sudo chmod +x ./gradlew
-        - run: ./gradlew dependencies
+      - run: sudo chmod +x ./gradlew
+      - run: ./gradlew dependencies
 
-        - save_cache:
-            paths:
-              - ~/.gradle
-            key: v1-dependencies-{{ checksum "build.gradle" }}
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: v1-dependencies-{{ checksum "build.gradle" }}
 
-        - run: ./gradlew clean check
+      - run: ./gradlew clean check
 
   publish:
     docker:
