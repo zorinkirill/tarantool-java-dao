@@ -70,9 +70,9 @@ workflows:
   build_and_publish_from_tag:
     jobs:
       - build:
-          - filters:
-              tags:
-                only: /.*/
+          filters:
+            tags:
+              only: /.*/
       - publish:
           requires:
             - build
