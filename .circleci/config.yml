@@ -62,6 +62,11 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
 
+      - run: |
+          echo $GPG_SIGNING_KEY \
+            | awk 'NR == 1 { print "GPG_SIGNING_KEY=" } 1' ORS='\\n' \
+            >> gradle.properties
+
       - run: sudo chmod +x ./gradlew
       - run: ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository -P version=$CIRCLE_TAG
 
