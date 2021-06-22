@@ -1,5 +1,7 @@
 plugins {
-    id 'maven-publish'
+    id "maven-publish"
+    id "signing"
+    id "io.github.gradle-nexus.publish-plugin"
 }
 
 allprojects {
@@ -9,37 +11,94 @@ allprojects {
     }
 }
 
+nexusPublishing {
+    repositories {
+        sonatype() {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
+    }
+}
+
 subprojects {
-    apply plugin: 'java'
+    apply plugin: "java"
     test {
         useJUnitPlatform()
     }
     configurations {
         all {
-            exclude group: 'junit', module: 'junit'
-            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+            exclude group: "junit", module: "junit"
+            exclude group: "org.junit.vintage", module: "junit-vintage-engine"
         }
     }
 
     ext {
-        assertJVersion = '3.6.1'
-        junitPlatformVersion = '1.6.2'
-        junitJupiterVersion = '5.6.2'
-        jsr305Version = '3.0.2'
-        googleAutoServiceVersion = '1.0-rc7'
-        lombokVersion = '1.18.12'
-        javapoetVersion = '1.13.0'
-        tarantoolConnectorVersion = '1.9.4'
+        assertJVersion = "3.6.1"
+        junitPlatformVersion = "1.6.2"
+        junitJupiterVersion = "5.6.2"
+        jsr305Version = "3.0.2"
+        googleAutoServiceVersion = "1.0-rc7"
+        lombokVersion = "1.18.12"
+        javapoetVersion = "1.13.0"
+        tarantoolConnectorVersion = "1.9.4"
     }
 
     dependencies {
-        testImplementation "org.assertj:assertj-core:${assertJVersion}"
-        testImplementation "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
-        testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
-        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+        testImplementation "org.assertj:assertj-core:$assertJVersion"
+        testImplementation "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+    }
+
+    def isSnapshot = project.version.toString().contains("SNAPSHOT")
+
+    plugins.withType(SigningPlugin) {
+        signing {
+            required = !isSnapshot
+
+            def signingKey = GPG_SIGNING_KEY
+            def signingPassword = GPG_SIGNING_PASSWORD
+
+            useInMemoryPgpKeys(signingKey, signingPassword)
+
+            sign publishing.publications
+        }
+    }
+
+    plugins.withType(MavenPublishPlugin) {
+        publishing {
+            publications {
+                maven(MavenPublication) {
+                    from components.java
+                    pom {
+                        name = "${project.group}:${project.name}"
+                        description = "Tarantool Java DAO Gemenration"
+                        url = "https://github.com/zorinkirill/tarantool-java-dao"
+                        scm {
+                            connection = "scm:git:git://github.com/zorinkirill/tarantool-java-dao.git"
+                            developerConnection = "scm:git:git://github.com/zorinkirill/tarantool-java-dao.git"
+                            url = "https://github.com/zorinkirill/tarantool-java-dao"
+                        }
+                        licenses {
+                            license {
+                                name = 'The Apache License, Version 2.0'
+                                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            }
+                        }
+                        developers {
+                            developer {
+                                id = "zorinkirill"
+                                name = "Kirill Zorin"
+                                email = "zorin.kirill.serg@yandex.ru"
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 wrapper {
-    gradleVersion = '6.5.1'
+    gradleVersion = "7.1"
 }
