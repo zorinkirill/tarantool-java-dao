@@ -1,6 +1,7 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
+    id "java-library"
+    id "maven-publish"
+    id "signing"
 }
 
 java {
@@ -9,7 +10,7 @@ java {
 }
 
 dependencies {
-    api project(':tarantool-dao-api')
+    api project(":tarantool-dao-api")
 
     implementation "com.google.code.findbugs:jsr305:${jsr305Version}"
     compileOnly "com.google.auto.service:auto-service:${googleAutoServiceVersion}"
@@ -21,12 +22,4 @@ dependencies {
     implementation "com.squareup:javapoet:${javapoetVersion}"
 
     implementation "org.tarantool:connector:${tarantoolConnectorVersion}"
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
 }

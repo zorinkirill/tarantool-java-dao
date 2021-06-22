@@ -63,7 +63,7 @@ jobs:
             - v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: sudo chmod +x ./gradlew
-      - run: ./gradlew assemble publish -P version=$CIRCLE_TAG
+      - run: ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository -P version=$CIRCLE_TAG
 
 workflows:
   version: 2
