@@ -14,8 +14,8 @@ allprojects {
 nexusPublishing {
     repositories {
         sonatype() {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
+            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
         }
     }
 }
@@ -54,16 +54,9 @@ subprojects {
 
     plugins.withType(SigningPlugin) {
         signing {
-            required = !isSnapshot
-                    && hasProperty("GPG_SIGNING_KEY_ID")
-                    && hasPorperty("GPG_SIGNING_KEY")
-                    && hasPorperty("GPG_SIGNING_PASSWORD")
+            required = !isSnapshot && hasProperty("signingKey") && hasProperty("signingPassword")
 
-            def signingKeyId = findProperty("GPG_SIGNING_KEY_ID")
-            def signingKey = findProperty("GPG_SIGNING_KEY")
-            def signingPassword = findProperty("GPG_SIGNING_PASSWORD")
-
-            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+            useInMemoryPgpKeys(findProperty("signingKey"), findProperty("signingPassword"))
 
             sign publishing.publications
         }
