@@ -37,8 +37,9 @@ jobs:
             - v1-dependencies-{{ checksum "build.gradle" }}
             - v1-dependencies-
 
-      - run: sudo chmod +x ./gradlew
-      - run: ./gradlew dependencies
+      - run: |
+          sudo chmod +x ./gradlew
+          ./gradlew dependencies
 
       - save_cache:
           paths:
@@ -65,10 +66,9 @@ jobs:
             - v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: |
-          ORG_GRADLE_PROJECT_signingKey=$(echo $GPG_KEY | base64 -d)
-          export ORG_GRADLE_PROJECT_signingKey
-      - run: sudo chmod +x ./gradlew
-      - run: ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository -P version=$CIRCLE_TAG
+          export ORG_GRADLE_PROJECT_signingKey=$(echo $GPG_KEY | base64 -d)
+          sudo chmod +x ./gradlew
+          ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository -P version=$CIRCLE_TAG
 
 workflows:
   version: 2
