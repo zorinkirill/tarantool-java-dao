@@ -50,15 +50,18 @@ subprojects {
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
     }
 
-    def isSnapshot = project.version.toString().contains("SNAPSHOT")
+    def isSnapshot = project.version.toString().endsWith("-SNAPSHOT")
 
     plugins.withType(SigningPlugin) {
         signing {
             required = !isSnapshot
+                    && hasProperty("GPG_SIGNING_KEY_ID")
+                    && hasPorperty("GPG_SIGNING_KEY")
+                    && hasPorperty("GPG_SIGNING_PASSWORD")
 
-            def signingKeyId = GPG_SIGNING_KEY_ID
-            def signingKey = GPG_SIGNING_KEY
-            def signingPassword = GPG_SIGNING_PASSWORD
+            def signingKeyId = findProperty("GPG_SIGNING_KEY_ID")
+            def signingKey = findProperty("GPG_SIGNING_KEY")
+            def signingPassword = findProperty("GPG_SIGNING_PASSWORD")
 
             useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
 
