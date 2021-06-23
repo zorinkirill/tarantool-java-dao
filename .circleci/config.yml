@@ -16,6 +16,7 @@ jobs:
             - |
               if [[ -n "${CIRCLE_PR_NUMBER}" ]]
               then
+                  echo "Checking out merge commit..."
                   # Update PR refs for testing.
                   FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/head:pr/${CIRCLE_PR_NUMBER}/head"
                   FETCH_REFS="${FETCH_REFS} +refs/pull/${CIRCLE_PR_NUMBER}/merge:pr/${CIRCLE_PR_NUMBER}/merge"
@@ -28,6 +29,7 @@ jobs:
 
                   # Test for *some* merge conflicts.
                   git branch --merged | grep "pr/${CIRCLE_PR_NUMBER}/head" > /dev/null
+                  echo "Merge commit checked out"
               fi
 
       - restore_cache:
@@ -62,6 +64,9 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
 
+      - run: |
+          ORG_GRADLE_PROJECT_signingKey=$(echo $GPG_KEY | base64 -d)
+          export ORG_GRADLE_PROJECT_signingKey
       - run: sudo chmod +x ./gradlew
       - run: ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository -P version=$CIRCLE_TAG
 
