@@ -25,6 +25,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.ElementKindVisitor14;
 import javax.lang.model.util.ElementKindVisitor9;
 import javax.tools.Diagnostic;
 import java.util.Collections;
@@ -37,7 +38,7 @@ import static com.kappadrive.dao.gen.util.GenerateUtil.SPACE;
 import static com.kappadrive.dao.gen.util.GenerateUtil.verifyFields;
 
 @SupportedAnnotationTypes("com.kappadrive.dao.api.TarantoolDao")
-@SupportedSourceVersion(SourceVersion.RELEASE_11)
+@SupportedSourceVersion(SourceVersion.RELEASE_23)
 @AutoService(Processor.class)
 public class GenerateDaoProcessor extends AbstractProcessor {
 
@@ -102,9 +103,8 @@ public class GenerateDaoProcessor extends AbstractProcessor {
     }
 
     @Nonnull
-    private ElementKindVisitor9<DaoImplData, Object> createDaoElementVisitor() {
-        // do not optimize generic - jdk11 has unfixed bug
-        return new ElementKindVisitor9<DaoImplData, Object>() {
+    private ElementKindVisitor14<DaoImplData, Object> createDaoElementVisitor() {
+        return new ElementKindVisitor14<>() {
             @Override
             public DaoImplData visitType(TypeElement e, Object o) {
                 PackageElement packageElement = (PackageElement) e.getEnclosingElement();
@@ -116,7 +116,7 @@ public class GenerateDaoProcessor extends AbstractProcessor {
                         .or(() -> AnnotationUtil.getAnnotationValue(entityType.asElement(), Space.class, String.class))
                         .orElseThrow(() -> new IllegalStateException("Either entity or DAO type should be annotated with @" + Space.class.getSimpleName()));
                 List<TypeElement> annotations = generateUtil.lookupStyleValue(e,
-                        (element, style) -> AnnotationUtil.getAnnotationArrayValue(element, style, "addAnnotations", AnnotationUtil.typeVisitor()))
+                                (element, style) -> AnnotationUtil.getAnnotationArrayValue(element, style, "addAnnotations", AnnotationUtil.typeVisitor()))
                         .orElse(Collections.emptyList());
                 List<FieldData> allFields = generateUtil.getAllFields(entityType);
                 verifyFields(allFields, entityType);
@@ -133,7 +133,7 @@ public class GenerateDaoProcessor extends AbstractProcessor {
                         .annotations(annotations)
                         .entity(entityData)
                         .space(space)
-                        .toTuple(generateUtil.createDaoToTupleMethod("toTuple", entityData, f -> true))
+                        .toTuple(generateUtil.createDaoToTupleMethod("toTuple", entityData, _ -> true))
                         .toKey(generateUtil.createDaoToTupleMethod("toKey", entityData, FieldData::isKey))
                         .toEntity(generateUtil.createDaoToEntityMethod(entityData))
                         .build();

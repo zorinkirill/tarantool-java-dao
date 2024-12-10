@@ -38,7 +38,7 @@ subprojects {
         junitJupiterVersion = "5.6.2"
         jsr305Version = "3.0.2"
         googleAutoServiceVersion = "1.0-rc7"
-        lombokVersion = "1.18.12"
+        lombokVersion = "1.18.36"
         javapoetVersion = "1.13.0"
         tarantoolConnectorVersion = "1.9.4"
     }
@@ -97,5 +97,5 @@ subprojects {
 }
 
 wrapper {
-    gradleVersion = "7.1"
+    gradleVersion = "8.11.1"
 }
