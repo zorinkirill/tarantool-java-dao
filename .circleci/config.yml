@@ -50,7 +50,7 @@ jobs:
 
   publish:
     docker:
-      - image: circleci/openjdk:11.0.1
+      - image: cimg/openjdk:23.0.1
 
     working_directory: ~/repo
 
